@@ -8,7 +8,14 @@ app.get('/', (req, res) => res.send('Hello World!'));
 
 app.post('/parse', (req, res) =>
 {
-    console.log(req.body);
+    let slicedBody = req.body;
+    const startIndex = slicedBody.indexOf('parseJSON(\'{') + 11;
+    slicedBody = slicedBody.slice(startIndex);
+    const endIndex = slicedBody.indexOf('}\');') + 1;
+    slicedBody = slicedBody.slice(0, endIndex);
+
+    console.log(JSON.parse(slicedBody));
+
     res.sendStatus(200);
 
 });
