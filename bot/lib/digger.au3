@@ -191,7 +191,7 @@ Func dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $table
 		 $hFileOpen = FileOpen($filePath, $FO_APPEND)
 		 swipeToNext($topLeftPos, $handsScanOffset, $handsHeight, 2)
 		 $isHandFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $handsScanOffset, $handsScanCol, $handsHeight)
-		 For $i = 0 To 2 Step 1
+		 For $i = 0 To 5 Step 1
 			If Not $isHandFocused Then
 			   $isHandFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $handsScanOffset, $handsScanCol, $handsHeight)
 			EndIf
