@@ -14,21 +14,23 @@ Func moveToScanPoint($topLeftPos, $bottomRightPos, $scanOffset, $scanCol, $heigh
    EndIf
 
    MouseMove($x, $y)
-   Sleep(50)
+   Sleep(200)
    MouseDown("left")
-   Sleep(50)
+   Sleep(200)
    While $i < 3 * $height
 	  $i = $i + 1
 	  $y = $y - 1
 	  $col = PixelGetColor ($x, $yScan)
 	  If $col = $scanCol Then
 		 MouseUp("left")
+		 Sleep(200)
 		 Return true
 	  EndIf
 	  MouseMove($x, $y)
 	  Sleep(1)
    WEnd
    MouseUp("left")
+   Sleep(200)
    Return false
 EndFunc
 
@@ -42,6 +44,7 @@ Func waitForColor($topLeftPos, $offset, $color, $waitTime)
 	  $col = PixelGetColor ($x, $y)
 	  If $col = $color Then
 		 MouseClick("left", $topLeftPos[0] + $offset[0], $topLeftPos[1] + $offset[1])
+		 Sleep(200)
 		 Return true
 	  EndIf
 	  Sleep(100)
@@ -75,20 +78,22 @@ Func swipeToNext($topLeftPos, $scanOffset, $height, $count)
    $y = $topLeftPos[1] + $scanOffset[1] + (1 + $count) * $height
 
    MouseMove($x, $y)
-   Sleep(50)
+   Sleep(200)
    MouseDown("left")
-   Sleep(50)
+   Sleep(200)
    MouseMove($x, $y - ($count - 0.15) * $handsHeight)
-   Sleep(50)
+   Sleep(500)
    MouseUp("left")
-   Sleep(50)
+   Sleep(200)
 EndFunc
 
 Func handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $waitForColorTimeout, $handNumber, $y)
    If $y Then
 	  MouseClick("left", $topLeftPos[0] + $handsScanOffset[0], $y)
+	  Sleep(200)
    Else
 	  MouseClick("left", $topLeftPos[0] + $handsScanOffset[0], $topLeftPos[1] + $handsScanOffset[1])
+	  Sleep(200)
    EndIf
    ClipPut ( "" )
    waitForColorInNeighborhood($topLeftPos, $handOptionsOffset, $handOptionsCol, $waitForColorTimeout)
@@ -184,6 +189,7 @@ Func dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $table
 	  $j = 0
 
 	  MouseClick("left", $topLeftPos[0] + $tablesScanOffset[0], $topLeftPos[1] + $tablesScanOffset[1])
+	  Sleep(200)
 	  waitForColorInNeighborhood($topLeftPos, $tableFullHandsOffset, $tableFullHandsCol, $waitForColorTimeout)
 
 	  If waitForColorInNeighborhood($topLeftPos, $tableRecommendsOffset, $tableRecommendsCol, $waitForColorTimeout) Then
