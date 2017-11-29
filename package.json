@@ -11,6 +11,6 @@
     "node": "7.4.0"
   },
   "scripts": {
-    "start": "node app/index.js"
+    "start": "node server/index.js"
   }
 }
