@@ -121,16 +121,16 @@ Func handleLastHands($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $hands
 	  Return
    EndIf
 
-   $i = 0
    $x = $topLeftPos[0] + $handsScanOffset[0]
-
    $y = $topLeftPos[1] + $bottomRightPos[1] - 70
 
-   While $y > $handsScanOffset[1]
-	  handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $waitForColorTimeout, 99, $y)
-	  $i = $i + 1
-      $y = $topLeftPos[1] + $bottomRightPos[1] - 70 - $handsHeight * $i
-	  Sleep(1000)
+   While $y > $topLeftPos[1] + $handsScanOffset[1] + $handsHeight
+      $y = $y - $handsHeight
+   WEnd
+   While $y <= $topLeftPos[1] + $bottomRightPos[1] - 70
+      handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $waitForColorTimeout, 99, $y)
+      $y = $y + $handsHeight
+      Sleep(1000)
    WEnd
 EndFunc
 
