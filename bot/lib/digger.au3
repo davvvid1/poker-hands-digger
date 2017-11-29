@@ -153,7 +153,7 @@ Func saveResults($hFileOpen, $url, $retry, $handNumber)
 
    ConsoleWrite("Received data length: " & StringLen($oReceived) & @CRLF & @CRLF)
    If 10 < StringLen($oReceived) Then
-	  If 1 = $handNumber Then
+	  If 1 = $handNumber and False Then
 		 If Not isUniqueHand($oReceived) Then
 			Return False
 		 EndIf
