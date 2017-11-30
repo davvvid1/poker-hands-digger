@@ -350,7 +350,7 @@ Func _Main()
 			   GUICtrlSetData($idLabel_handBackPos, "(+" & $handBackOffset[0] & ", +" & $handBackOffset[1] & ")")
 			EndIf
 		 Case $iMsg = $idButton_start
-		    dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesHeight, $tableFullHandsOffset, $tableFullHandsCol, $tableRecommendsOffset, $tableRecommendsCol, $handsScanOffset, $handsScanCol, $handsHeight, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset)
+		    dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesResultOffset, $tablesResultCol, $tablesHeight, $tableFullHandsOffset, $tableFullHandsCol, $tableRecommendsOffset, $tableRecommendsCol, $handsScanOffset, $handsScanCol, $handsHeight, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset)
 	  EndSelect
    WEnd
    Exit

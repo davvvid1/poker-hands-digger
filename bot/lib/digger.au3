@@ -87,7 +87,7 @@ Func swipeToNext($topLeftPos, $scanOffset, $height, $count)
    Sleep(200)
 EndFunc
 
-Func handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $waitForColorTimeout, $handNumber, $y)
+Func handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $isTablePlayed, $waitForColorTimeout, $handNumber, $y)
    If $y Then
 	  MouseClick("left", $topLeftPos[0] + $handsScanOffset[0], $y)
 	  Sleep(200)
@@ -101,7 +101,7 @@ Func handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanO
    waitForColor($topLeftPos, $handCopyOffset, $handCopyCol, $waitForColorTimeout)
    Sleep(1000)
 
-   $isUniqueHand = saveResults($hFileOpen, ClipGet(), 30, $handNumber)
+   $isUniqueHand = saveResults($hFileOpen, ClipGet(), $isTablePlayed, 30, $handNumber)
 
    MouseClick("left", $topLeftPos[0] + $handBackOffset[0], $topLeftPos[1] + $handBackOffset[1])
    Sleep(1000)
@@ -133,13 +133,13 @@ Func handleLastHands($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $hands
       $y = $y - $handsHeight
    WEnd
    While $y <= $topLeftPos[1] + $bottomRightPos[1] - 70
-      handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $waitForColorTimeout, 99, $y)
+      handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, False, $waitForColorTimeout, 99, $y)
       $y = $y + $handsHeight
       Sleep(1000)
    WEnd
 EndFunc
 
-Func saveResults($hFileOpen, $url, $retry, $handNumber)
+Func saveResults($hFileOpen, $url, $isTablePlayed, $retry, $handNumber)
    If Not $retry Or 10 > StringLen($url) Then
 	  Return True
    EndIf
@@ -153,7 +153,7 @@ Func saveResults($hFileOpen, $url, $retry, $handNumber)
 
    ConsoleWrite("Received data length: " & StringLen($oReceived) & @CRLF & @CRLF)
    If 10 < StringLen($oReceived) Then
-	  If 1 = $handNumber and False Then
+	  If 1 = $handNumber and Not $isTablePlayed Then
 		 If Not isUniqueHand($oReceived) Then
 			Return False
 		 EndIf
@@ -166,13 +166,13 @@ Func saveResults($hFileOpen, $url, $retry, $handNumber)
 	  ConsoleWrite("Received status: " & $oStatusCode & @CRLF & @CRLF)
 	  If $retry Then
 		 Sleep(30000)
-		 Return saveResults($hFileOpen, $url, $retry - 1, $handNumber)
+		 Return saveResults($hFileOpen, $url, $isTablePlayed, $retry - 1, $handNumber)
 	  EndIf
 	  Return True
    EndIf
 EndFunc
 
-Func dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesHeight, $tableFullHandsOffset, $tableFullHandsCol, $tableRecommendsOffset, $tableRecommendsCol, $handsScanOffset, $handsScanCol, $handsHeight, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset)
+Func dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesResultOffset, $tablesResultCol, $tablesHeight, $tableFullHandsOffset, $tableFullHandsCol, $tableRecommendsOffset, $tableRecommendsCol, $handsScanOffset, $handsScanCol, $handsHeight, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset)
    If Not $topLeftPos[0] Or Not $bottomRightPos[0] Or Not $handsScanOffset[0] Or Not $handsScanCol Or Not $handsHeight Or Not $handOptionsOffset[0] Or Not $handOptionsCol Or Not $handShareOffset[0] Or Not $handShareCol Or Not $handCopyOffset[0] Or Not $handCopyCol Or Not $handBackOffset[0] Then
 	  MsgBox(0, "Warning", "Set all required fields!")
 	  Return
@@ -185,6 +185,7 @@ Func dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $table
    $id = IniRead("C:\Users\Ziolo\Desktop\config.ini", "general", "id", "no-name")
 
    $isTableFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesHeight)
+   $isTablePlayed = $tablesResultCol <> PixelGetColor($topLeftPos[0] + $tablesResultOffset[0], $topLeftPos[1] + $tablesResultOffset[1])
    While $isTableFocused
 	  $j = 0
 
@@ -193,7 +194,11 @@ Func dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $table
 	  waitForColorInNeighborhood($topLeftPos, $tableFullHandsOffset, $tableFullHandsCol, $waitForColorTimeout)
 
 	  If waitForColorInNeighborhood($topLeftPos, $tableRecommendsOffset, $tableRecommendsCol, $waitForColorTimeout) Then
-		 $filePath = @WorkingDir & "\" & $id & "-" & @YEAR & "-" & @MON & "-" & @MDAY & "___" & @HOUR  & "-" & @MIN& "-" & @SEC & ".txt"
+		 $filePath = @WorkingDir & "\" & $id & "-" & @YEAR & "-" & @MON & "-" & @MDAY & "___" & @HOUR  & "-" & @MIN& "-" & @SEC
+		 If $isTablePlayed Then
+		   $filePath = $filePath & "___played"
+		 EndIf
+		 $filePath = $filePath & ".txt"
 		 $hFileOpen = FileOpen($filePath, $FO_APPEND)
 		 swipeToNext($topLeftPos, $handsScanOffset, $handsHeight, 2)
 		 $isHandFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $handsScanOffset, $handsScanCol, $handsHeight)
@@ -204,7 +209,7 @@ Func dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $table
 		 Next
 		 While $isHandFocused
 			$j = $j + 1
-			$isHandFocused = handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $waitForColorTimeout, $j, 0)
+			$isHandFocused = handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $isTablePlayed, $waitForColorTimeout, $j, 0)
 		 WEnd
 		 handleLastHands($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $waitForColorTimeout)
 	  EndIf
