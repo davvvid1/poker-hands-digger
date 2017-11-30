@@ -43,6 +43,10 @@ Global $idLabel_handsScanPos
 Global $idLabel_handsScanCol
 Global $idButton_setHandsScanPos
 Global $idButton_goHandsScanPos
+Global $idLabel_tablesResultPos
+Global $idLabel_tablesResultCol
+Global $idButton_setTablesResultPos
+Global $idButton_goTablesResultPos
 
 Global $idLabel_handsHeight
 Global $idButton_setHandsHeight
@@ -76,6 +80,8 @@ Global $topLeftPos[2]
 Global $bottomRightPos[2]
 Global $tablesScanOffset[2]
 Global $tablesScanCol
+Global $tablesResultOffset[2]
+Global $tablesResultCol
 Global $tablesHeight
 Global $tableFullHandsOffset[2]
 Global $tableFullHandsCol
@@ -110,8 +116,8 @@ Func createSectionUI($y, $label, $isColor)
 EndFunc
 
 Func _Main()
-   GUICreate("MyGUI", 270, 645, 200)
-   GUICtrlCreateGroup("Initial config", $panelConfigX, $panelConfigY, 155, 575)
+   GUICreate("MyGUI", 270, 690, 810, 10)
+   GUICtrlCreateGroup("Initial config", $panelConfigX, $panelConfigY, 155, 620)
    $buttonsY = 120
 
    $ids = createSectionUI(25, "Top left corner", 0)
@@ -130,60 +136,66 @@ Func _Main()
    $idButton_setTablesScanPos = $ids[2]
    $idButton_goTablesScanPos = $ids[3]
 
-   $y = 160
+   $ids = createSectionUI(160, "Tables result", 1)
+   $idLabel_tablesResultPos = $ids[0]
+   $idLabel_tablesResultCol = $ids[1]
+   $idButton_setTablesResultPos = $ids[2]
+   $idButton_goTablesResultPos = $ids[3]
+
+   $y = 205
    GUICtrlCreateLabel("Tables height", $panelConfigX + 15, $panelConfigY + $y)
    $idLabel_tablesHeight = GUICtrlCreateLabel("", $panelConfigX + 15, $panelConfigY + $y + 20, 90, 20)
    $idButton_setTablesHeight = GUICtrlCreateButton("S", $panelConfigX + $buttonsY, $panelConfigY + $y, 20, 20)
    GUICtrlSetTip($idButton_setTablesHeight, "Set tables height")
 
-   $ids = createSectionUI(205, "Table full hands", 1)
+   $ids = createSectionUI(250, "Table full hands", 1)
    $idLabel_tableFullHandsPos = $ids[0]
    $idLabel_tableFullHandsCol = $ids[1]
    $idButton_setTableFullHandsPos = $ids[2]
    $idButton_goTableFullHandsPos = $ids[3]
 
-   $ids = createSectionUI(250, "Table recommends", 1)
+   $ids = createSectionUI(295, "Table recommends", 1)
    $idLabel_tableRecommendsPos = $ids[0]
    $idLabel_tableRecommendsCol = $ids[1]
    $idButton_setTableRecommendsPos = $ids[2]
    $idButton_goTableRecommendsPos = $ids[3]
 
-   $ids = createSectionUI(295, "Hands scan", 1)
+   $ids = createSectionUI(340, "Hands scan", 1)
    $idLabel_handsScanPos = $ids[0]
    $idLabel_handsScanCol = $ids[1]
    $idButton_setHandsScanPos = $ids[2]
    $idButton_goHandsScanPos = $ids[3]
 
-   $y = 340
+   $y = 385
    GUICtrlCreateLabel("Hands height", $panelConfigX + 15, $panelConfigY + $y)
    $idLabel_handsHeight = GUICtrlCreateLabel("", $panelConfigX + 15, $panelConfigY + $y + 20, 90, 20)
    $idButton_setHandsHeight = GUICtrlCreateButton("S", $panelConfigX + $buttonsY, $panelConfigY + $y, 20, 20)
    GUICtrlSetTip($idButton_setHandsHeight, "Set hands height")
 
-   $ids = createSectionUI(385, "Hand options", 1)
+   $ids = createSectionUI(430, "Hand options", 1)
    $idLabel_handOptionsPos = $ids[0]
    $idLabel_handOptionsCol = $ids[1]
    $idButton_setHandOptionsPos = $ids[2]
    $idButton_goHandOptionsPos = $ids[3]
 
-   $ids = createSectionUI(430, "Hand share", 1)
+   $ids = createSectionUI(475, "Hand share", 1)
    $idLabel_handSharePos = $ids[0]
    $idLabel_handShareCol = $ids[1]
    $idButton_setHandSharePos = $ids[2]
    $idButton_goHandSharePos = $ids[3]
 
-   $ids = createSectionUI(475, "Hand copy", 1)
+   $ids = createSectionUI(520, "Hand copy", 1)
    $idLabel_handCopyPos = $ids[0]
    $idLabel_handCopyCol = $ids[1]
    $idButton_setHandCopyPos = $ids[2]
    $idButton_goHandCopyPos = $ids[3]
 
-   $ids = createSectionUI(520, "Hand back", 0)
+   $ids = createSectionUI(565, "Hand back", 0)
    $idLabel_handBackPos = $ids[0]
    $idButton_setHandBackPos = $ids[1]
    $idButton_goHandBackPos = $ids[2]
 
-   $idLabel_message = GUICtrlCreateLabel("", 10, 600, 250, 800)
+   $idLabel_message = GUICtrlCreateLabel("", 10, 645, 250, 800)
    GUICtrlSetFont (-1, 11)
    GUICtrlSetColor (-1, 7895160)
 
@@ -221,6 +233,13 @@ Func _Main()
 			GUICtrlSetData($idLabel_message, "Move mouse to requested position and press F2")
          Case $iMsg = $idButton_goTablesScanPos
 			MouseMove($topLeftPos[0] + $tablesScanOffset[0], $topLeftPos[1] + $tablesScanOffset[1])
+
+       Case $iMsg = $idButton_setTablesResultPos
+         $f2Mode = "setTablesResult"
+         GUICtrlSetData($idLabel_message, "Move mouse to requested position and press F2")
+         Case $iMsg = $idButton_goTablesResultPos
+         MouseMove($topLeftPos[0] + $tablesResultOffset[0], $topLeftPos[1] + $tablesResultOffset[1])
+
 		 Case $iMsg = $idButton_setTablesHeight
 			$f2Mode = "setTablesHeight1"
 			GUICtrlSetData($idLabel_message, "Move mouse to the upper bar of any table and press F2")
@@ -271,7 +290,7 @@ Func _Main()
 			MouseMove($topLeftPos[0] + $handBackOffset[0], $topLeftPos[1] + $handBackOffset[1])
 
 		 Case $iMsg = $idButton_saveConfig
-		    saveConfig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesHeight, $tableFullHandsOffset, $tableFullHandsCol, $tableRecommendsOffset, $tableRecommendsCol, $handsScanOffset, $handsScanCol, $handsHeight, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset)
+		    saveConfig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesResultOffset, $tablesResultCol, $tablesHeight, $tableFullHandsOffset, $tableFullHandsCol, $tableRecommendsOffset, $tableRecommendsCol, $handsScanOffset, $handsScanCol, $handsHeight, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset)
 		 Case $iMsg = $idButton_loadConfig Or $loadConfigOnce
 			$loadConfigOnce = False
 		    $config = loadConfig()
@@ -283,32 +302,37 @@ Func _Main()
 			   $tablesScanOffset[0] = $config[4]
 			   $tablesScanOffset[1] = $config[5]
 			   $tablesScanCol = $config[6]
-			   $tablesHeight = $config[7]
-			   $tableFullHandsOffset[0] = $config[8]
-			   $tableFullHandsOffset[1] = $config[9]
-			   $tableFullHandsCol = $config[10]
-			   $tableRecommendsOffset[0] = $config[11]
-			   $tableRecommendsOffset[1] = $config[12]
-			   $tableRecommendsCol = $config[13]
-			   $handsScanOffset[0] = $config[14]
-			   $handsScanOffset[1] = $config[15]
-			   $handsScanCol = $config[16]
-			   $handsHeight = $config[17]
-			   $handOptionsOffset[0] = $config[18]
-			   $handOptionsOffset[1] = $config[19]
-			   $handOptionsCol = $config[20]
-			   $handShareOffset[0] = $config[21]
-			   $handShareOffset[1] = $config[22]
-			   $handShareCol = $config[23]
-			   $handCopyOffset[0] = $config[24]
-			   $handCopyOffset[1] = $config[25]
-			   $handCopyCol = $config[26]
-			   $handBackOffset[0] = $config[27]
-			   $handBackOffset[1] = $config[28]
+			   $tablesResultOffset[0] = $config[7]
+			   $tablesResultOffset[1] = $config[8]
+			   $tablesResultCol = $config[9]
+			   $tablesHeight = $config[10]
+			   $tableFullHandsOffset[0] = $config[11]
+			   $tableFullHandsOffset[1] = $config[12]
+			   $tableFullHandsCol = $config[13]
+			   $tableRecommendsOffset[0] = $config[14]
+			   $tableRecommendsOffset[1] = $config[15]
+			   $tableRecommendsCol = $config[16]
+			   $handsScanOffset[0] = $config[17]
+			   $handsScanOffset[1] = $config[18]
+			   $handsScanCol = $config[19]
+			   $handsHeight = $config[20]
+			   $handOptionsOffset[0] = $config[21]
+			   $handOptionsOffset[1] = $config[22]
+			   $handOptionsCol = $config[23]
+			   $handShareOffset[0] = $config[24]
+			   $handShareOffset[1] = $config[25]
+			   $handShareCol = $config[26]
+			   $handCopyOffset[0] = $config[27]
+			   $handCopyOffset[1] = $config[28]
+			   $handCopyCol = $config[29]
+			   $handBackOffset[0] = $config[30]
+			   $handBackOffset[1] = $config[31]
 			   GUICtrlSetData($idLabel_topLeft, "(" & $topLeftPos[0] & ", " & $topLeftPos[1] & ")")
 			   GUICtrlSetData($idLabel_bottomRight, "(+" & $bottomRightPos[0] & ", +" & $bottomRightPos[1] & ")")
 			   GUICtrlSetData($idLabel_tablesScanPos, "(+" & $tablesScanOffset[0] & ", +" & $tablesScanOffset[1] & ")")
 			   GUICtrlSetBkColor($idLabel_tablesScanCol, $tablesScanCol)
+			   GUICtrlSetData($idLabel_tablesResultPos, "(+" & $tablesResultOffset[0] & ", +" & $tablesResultOffset[1] & ")")
+			   GUICtrlSetBkColor($idLabel_tablesResultCol, $tablesResultCol)
 			   GUICtrlSetData($idLabel_tablesHeight, $tablesHeight)
 			   GUICtrlSetData($idLabel_tableFullHandsPos, "(+" & $tableFullHandsOffset[0] & ", +" & $tableFullHandsOffset[1] & ")")
 			   GUICtrlSetBkColor($idLabel_tableFullHandsCol, $tableFullHandsCol)
@@ -365,6 +389,10 @@ Func getPos()
 	  Case "setTablesScan" = $f2Mode
 		 $tablesScanOffset = setOffset($idLabel_tablesScanPos, $idLabel_message)
 		 $tablesScanCol = setCol($idLabel_tablesScanCol, $idLabel_message)
+
+	  Case "setTablesResult" = $f2Mode
+		 $tablesResultOffset = setOffset($idLabel_tablesResultPos, $idLabel_message)
+		 $tablesResultCol = setCol($idLabel_tablesResultCol, $idLabel_message)
 
 	  Case "setTablesHeight1" = $f2Mode
 		 $f2Mode = "setTablesHeight2"
