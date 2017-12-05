@@ -88,8 +88,9 @@ Func isUniqueHand($json)
 		 ConsoleWrite("json " & $json & @CRLF)
 		 ConsoleWrite("file " & FileReadLine(@WorkingDir & "/" & $files[$i], 1) & @CRLF)
 		 $content = FileReadLine(@WorkingDir & "/" & $files[$i], 1)
-		 $index = StringInStr($content, """CARD"":""")
-       $content = StringMid($content, 1, $index + 7) & "-1 -1" & StringMid($content, $index + 13, StringLen($content))
+		 $index = StringInStr($content, """HOLECARD"":{""CARD"":""")
+       $content = StringMid($content, 1, $index + 19) & "-1 -1" & StringMid($content, $index + 25, StringLen($content))
+		 ConsoleWrite("move " & $content & @CRLF)
 		 If $isUnique And StringInStr($content, $json) Then
 			ConsoleWrite("unique FALSE" & @CRLF)
 			$isUnique = False
