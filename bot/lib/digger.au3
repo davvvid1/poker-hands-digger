@@ -34,7 +34,7 @@ Func moveToScanPoint($topLeftPos, $bottomRightPos, $scanOffset, $scanCol, $heigh
    Return false
 EndFunc
 
-Func waitForColor($topLeftPos, $offset, $color, $waitTime)
+Func waitForColor($hFileLogs, $topLeftPos, $offset, $color, $waitTime)
    $i = 0;
    $x = $topLeftPos[0] + $offset[0]
    $y = $topLeftPos[1] + $offset[1]
@@ -43,6 +43,7 @@ Func waitForColor($topLeftPos, $offset, $color, $waitTime)
 	  $i = $i + 1
 	  $col = PixelGetColor ($x, $y)
 	  If $col = $color Then
+	  	 logToFile($hFileLogs, "click")
 		 MouseClick("left", $topLeftPos[0] + $offset[0], $topLeftPos[1] + $offset[1])
 		 Sleep(200)
 		 Return true
@@ -52,7 +53,7 @@ Func waitForColor($topLeftPos, $offset, $color, $waitTime)
    Return false
 EndFunc
 
-Func waitForColorInNeighborhood($topLeftPos, $offset, $color, $waitTime)
+Func waitForColorInNeighborhood($hFileLogs, $topLeftPos, $offset, $color, $waitTime)
    $k = 0;
    Local $modifiedOffset[2]
    $neighborhoodPixels = 4
@@ -64,7 +65,7 @@ Func waitForColorInNeighborhood($topLeftPos, $offset, $color, $waitTime)
 		 For $i = -$neighborhoodPixels To $neighborhoodPixels Step 1
 			$modifiedOffset[0] = $offset[0] + $i
 			$modifiedOffset[1] = $offset[1] + $j
-			If waitForColor($topLeftPos, $modifiedOffset, $color, 100) Then
+			If waitForColor($hFileLogs, $topLeftPos, $modifiedOffset, $color, 100) Then
 			   Return true
 			EndIf
 		 Next
@@ -87,39 +88,51 @@ Func swipeToNext($topLeftPos, $scanOffset, $height, $count)
    Sleep(200)
 EndFunc
 
-Func handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $isTablePlayed, $waitForColorTimeout, $handNumber, $y)
+Func handleHand($filePath, $hFileData, $hFileLogs, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $isTablePlayed, $waitForColorTimeout, $handNumber, $y)
+   logToFile($hFileLogs, "handle hand: " & $handNumber)
    If $y Then
-	  MouseClick("left", $topLeftPos[0] + $handsScanOffset[0], $y)
+	  logToFile($hFileLogs, "one of the last hand $y: " & $y)
+	  logToFile($hFileLogs, "click hand")
+     MouseClick("left", $topLeftPos[0] + $handsScanOffset[0], $y)
 	  Sleep(200)
    Else
+     logToFile($hFileLogs, "click hand")
 	  MouseClick("left", $topLeftPos[0] + $handsScanOffset[0], $topLeftPos[1] + $handsScanOffset[1])
 	  Sleep(200)
    EndIf
    ClipPut ( "" )
-   waitForColorInNeighborhood($topLeftPos, $handOptionsOffset, $handOptionsCol, $waitForColorTimeout)
-   waitForColor($topLeftPos, $handShareOffset, $handShareCol, $waitForColorTimeout)
-   waitForColor($topLeftPos, $handCopyOffset, $handCopyCol, $waitForColorTimeout)
+   logToFile($hFileLogs, "wait for $handOptionsCol")
+   waitForColorInNeighborhood($hFileLogs, $topLeftPos, $handOptionsOffset, $handOptionsCol, $waitForColorTimeout)
+   logToFile($hFileLogs, "wait for $handShareCol")
+   waitForColor($hFileLogs, $topLeftPos, $handShareOffset, $handShareCol, $waitForColorTimeout)
+   logToFile($hFileLogs, "wait for $handCopyCol")
+   waitForColor($hFileLogs, $topLeftPos, $handCopyOffset, $handCopyCol, $waitForColorTimeout)
    Sleep(1000)
 
-   $isUniqueHand = saveResults($hFileOpen, ClipGet(), $isTablePlayed, 30, $handNumber)
-
+   $isUniqueHand = saveResults($hFileData, $hFileLogs, ClipGet(), $isTablePlayed, 30, $handNumber)
+   logToFile($hFileLogs, "$isUniqueHand: " & $isUniqueHand)
+	logToFile($hFileLogs, "click back")
    MouseClick("left", $topLeftPos[0] + $handBackOffset[0], $topLeftPos[1] + $handBackOffset[1])
    Sleep(1000)
 
    If $isUniqueHand Then
 	  If Not $y Then
 		 swipeToNext($topLeftPos, $handsScanOffset, $handsHeight, 1)
-		 Return moveToScanPoint($topLeftPos, $bottomRightPos, $handsScanOffset, $handsScanCol, $handsHeight)
+       logToFile($hFileLogs, "start scrolling to $handsScanCol")
+       $isHandFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $handsScanOffset, $handsScanCol, $handsHeight)
+       logToFile($hFileLogs, "$isHandFocused: " & $isHandFocused)
+		 Return $isHandFocused
 	  EndIf
    Else
 	  ConsoleWrite("delete file " & $filePath & @CRLF);
-	  FileClose ($hFileOpen)
+	  logToFile($hFileLogs, "delete file: " & $filePath)
+	  FileClose ($hFileData)
 	  FileDelete ($filePath)
 	  Return False
    EndIf
 EndFunc
 
-Func handleLastHands($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $waitForColorTimeout)
+Func handleLastHands($filePath, $hFileData, $hFileLogs, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $waitForColorTimeout)
    Sleep(1000)
 
    If Not FileExists($filePath) Then
@@ -133,13 +146,13 @@ Func handleLastHands($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $hands
       $y = $y - $handsHeight
    WEnd
    While $y <= $topLeftPos[1] + $bottomRightPos[1] - 70
-      handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, False, $waitForColorTimeout, 99, $y)
+      handleHand($filePath, $hFileData, $hFileLogs, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, False, $waitForColorTimeout, 99, $y)
       $y = $y + $handsHeight
       Sleep(1000)
    WEnd
 EndFunc
 
-Func saveResults($hFileOpen, $url, $isTablePlayed, $retry, $handNumber)
+Func saveResults($hFileData, $hFileLogs, $url, $isTablePlayed, $retry, $handNumber)
    If Not $retry Or 10 > StringLen($url) Then
 	  Return True
    EndIf
@@ -147,29 +160,36 @@ Func saveResults($hFileOpen, $url, $isTablePlayed, $retry, $handNumber)
    $oHTTP = ObjCreate("winhttp.winhttprequest.5.1")
    $oHTTP.Open("POST", $serverAddress & "/parse", False)
    $oHTTP.SetRequestHeader("Content-Type", "text/plain")
+   logToFile($hFileLogs, "request to server $url: " & $url)
    $oHTTP.Send($url)
    $oReceived = $oHTTP.ResponseText
    $oStatusCode = $oHTTP.Status
 
-   ConsoleWrite("Received data length: " & StringLen($oReceived) & @CRLF & @CRLF)
+   logToFile($hFileLogs, "status: " & $oStatusCode)
+   logToFile($hFileLogs, "data: " & $oReceived)
+
    If 10 < StringLen($oReceived) Then
 	  If 1 = $handNumber and Not $isTablePlayed Then
 		 If Not isUniqueHand($oReceived) Then
+		   logToFile($hFileLogs, "not unique first hand")
 			Return False
 		 EndIf
 	  EndIf
 
-	  FileWrite($hFileOpen, $oReceived & @CRLF & @CRLF)
+	  FileWrite($hFileData, $oReceived & @CRLF & @CRLF)
 	  Return True
    Else
-	  ConsoleWrite("Received data: " & $oReceived & @CRLF)
-	  ConsoleWrite("Received status: " & $oStatusCode & @CRLF & @CRLF)
+     logToFile($hFileLogs, "$retry: " & $retry)
 	  If $retry Then
 		 Sleep(30000)
-		 Return saveResults($hFileOpen, $url, $isTablePlayed, $retry - 1, $handNumber)
+		 Return saveResults($hFileData, $hFileLogs, $url, $isTablePlayed, $retry - 1, $handNumber)
 	  EndIf
 	  Return True
    EndIf
+EndFunc
+
+Func logToFile($hFileLogs, $message)
+   FileWrite($hFileLogs, @YEAR & "-" & @MON & "-" & @MDAY & "___" & @HOUR  & "-" & @MIN& "-" & @SEC & "   " & $message & @CRLF)
 EndFunc
 
 Func dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesResultOffset, $tablesResultCol, $tablesHeight, $tableFullHandsOffset, $tableFullHandsCol, $tableRecommendsOffset, $tableRecommendsCol, $handsScanOffset, $handsScanCol, $handsHeight, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset)
@@ -177,55 +197,70 @@ Func dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $table
 	  MsgBox(0, "Warning", "Set all required fields!")
 	  Return
    EndIf
-
    Sleep(3000)
 
    $waitForColorTimeout = 60 * 1000
 
    $id = IniRead("C:\Users\Ziolo\Desktop\config.ini", "general", "id", "no-name")
+   $filePath = @WorkingDir & "\" & $id & "-" & @YEAR & "-" & @MON & "-" & @MDAY & "___" & @HOUR  & "-" & @MIN& "-" & @SEC & "___logs.txt"
+   $hFileLogs = FileOpen($filePath, $FO_APPEND)
 
    $isTableFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesHeight)
+   logToFile($hFileLogs, "first $isTableFocused: " & $isTableFocused)
    $isTablePlayed = $tablesResultCol <> PixelGetColor($topLeftPos[0] + $tablesResultOffset[0], $topLeftPos[1] + $tablesResultOffset[1])
+   logToFile($hFileLogs, "first $isTablePlayed: " & $isTablePlayed)
    While $isTableFocused
 	  $j = 0
-
+     logToFile($hFileLogs, @CRLF & @CRLF & "Start new TABLE")
+	  logToFile($hFileLogs, "click table")
 	  MouseClick("left", $topLeftPos[0] + $tablesScanOffset[0], $topLeftPos[1] + $tablesScanOffset[1])
 	  Sleep(200)
-	  waitForColorInNeighborhood($topLeftPos, $tableFullHandsOffset, $tableFullHandsCol, $waitForColorTimeout)
+	  logToFile($hFileLogs, "wait for $tableFullHandsCol")
+	  waitForColorInNeighborhood($hFileLogs, $topLeftPos, $tableFullHandsOffset, $tableFullHandsCol, $waitForColorTimeout)
 
-	  If waitForColorInNeighborhood($topLeftPos, $tableRecommendsOffset, $tableRecommendsCol, $waitForColorTimeout) Then
+	  logToFile($hFileLogs, "wait for $tableRecommendsCol")
+	  If waitForColorInNeighborhood($hFileLogs, $topLeftPos, $tableRecommendsOffset, $tableRecommendsCol, $waitForColorTimeout) Then
 		 $filePath = @WorkingDir & "\" & $id & "-" & @YEAR & "-" & @MON & "-" & @MDAY & "___" & @HOUR  & "-" & @MIN& "-" & @SEC
 		 If $isTablePlayed Then
 		   $filePath = $filePath & "___played"
 		 EndIf
 		 $filePath = $filePath & ".txt"
-		 $hFileOpen = FileOpen($filePath, $FO_APPEND)
+		 $hFileData = FileOpen($filePath, $FO_APPEND)
 		 swipeToNext($topLeftPos, $handsScanOffset, $handsHeight, 2)
+		 logToFile($hFileLogs, "start scrolling to $handsScanCol")
 		 $isHandFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $handsScanOffset, $handsScanCol, $handsHeight)
+		 logToFile($hFileLogs, "$isHandFocused: " & $isHandFocused)
 		 For $i = 0 To 5 Step 1
 			If Not $isHandFocused Then
 			   $isHandFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $handsScanOffset, $handsScanCol, $handsHeight)
+			   logToFile($hFileLogs, "$isHandFocused: " & $isHandFocused)
 			EndIf
 		 Next
 		 While $isHandFocused
 			$j = $j + 1
-			$isHandFocused = handleHand($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $isTablePlayed, $waitForColorTimeout, $j, 0)
+		   logToFile($hFileLogs, @CRLF & "Start new HAND")
+			$isHandFocused = handleHand($filePath, $hFileData, $hFileLogs, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $isTablePlayed, $waitForColorTimeout, $j, 0)
 		 WEnd
-		 handleLastHands($filePath, $hFileOpen, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $waitForColorTimeout)
+		 logToFile($hFileLogs, "start handling last hands")
+		 handleLastHands($filePath, $hFileData, $hFileLogs, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $waitForColorTimeout)
 	  EndIf
 
 	  Sleep(1000)
+	  logToFile($hFileLogs, "click back")
 	  MouseClick("left", $topLeftPos[0] + $handBackOffset[0], $topLeftPos[1] + $handBackOffset[1])
 	  Sleep(1000)
+	  logToFile($hFileLogs, "click back")
 	  MouseClick("left", $topLeftPos[0] + $handBackOffset[0], $topLeftPos[1] + $handBackOffset[1])
 	  Sleep(1000)
 
 	  swipeToNext($topLeftPos, $tablesScanOffset, $tablesHeight, 0.6)
 	  $isTableFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesHeight)
+	  logToFile($hFileLogs, "$isTableFocused: " & $isTableFocused)
 	  For $i = 0 To 3 Step 1
 		 If Not $isTableFocused Then
 			Sleep(10000)
 			$isTableFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesHeight)
+	      logToFile($hFileLogs, "$isTableFocused: " & $isTableFocused)
 		 EndIf
 	  Next
    WEnd
