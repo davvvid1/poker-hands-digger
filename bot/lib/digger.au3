@@ -14,25 +14,25 @@ Func moveToScanPoint($topLeftPos, $bottomRightPos, $scanOffset, $scanCol, $heigh
    EndIf
 
    MouseMove($x, $y)
-   Sleep(2000)
+   Sleep(1000)
    MouseDown("left")
-   Sleep(2000)
+   Sleep(1000)
    While $i < 3 * $height
 	  $i = $i + 1
 	  $y = $y - 1
 	  $col = PixelGetColor ($x, $yScan)
 	  If $col = $scanCol Then
-	    Sleep(2000)
+	    Sleep(1000)
 		 MouseUp("left")
-		 Sleep(2000)
+		 Sleep(1000)
 		 Return true
 	  EndIf
 	  MouseMove($x, $y)
 	  Sleep(1)
    WEnd
-   Sleep(2000)
+   Sleep(1000)
    MouseUp("left")
-   Sleep(2000)
+   Sleep(1000)
    Return false
 EndFunc
 
@@ -47,7 +47,7 @@ Func waitForColor($hFileLogs, $topLeftPos, $offset, $color, $waitTime)
 	  If $col = $color Then
 	  	 logToFile($hFileLogs, "click")
 		 MouseClick("left", $topLeftPos[0] + $offset[0], $topLeftPos[1] + $offset[1])
-		 Sleep(2000)
+		 Sleep(1000)
 		 Return true
 	  EndIf
 	  Sleep(100)
@@ -76,6 +76,20 @@ Func waitForColorInNeighborhood($hFileLogs, $topLeftPos, $offset, $color, $waitT
    Return false
 EndFunc
 
+Func swipeToNext($topLeftPos, $scanOffset, $height, $count)
+   $x = $topLeftPos[0] + $scanOffset[0]
+   $y = $topLeftPos[1] + $scanOffset[1] + (1 + $count) * $height
+
+   MouseMove($x, $y)
+   Sleep(1000)
+   MouseDown("left")
+   Sleep(1000)
+   MouseMove($x, $y - ($count - 0.15) * $handsHeight)
+   Sleep(3000)
+   MouseUp("left")
+   Sleep(1000)
+EndFunc
+
 Func handleHand($filePath, $hFileData, $hFileLogs, $topLeftPos, $bottomRightPos, $handsScanOffset, $handOptionsOffset, $handOptionsCol, $handShareOffset, $handShareCol, $handCopyOffset, $handCopyCol, $handBackOffset, $handsHeight, $isTablePlayed, $waitForColorTimeout, $handNumber, $y)
    logToFile($hFileLogs, "handle hand: " & $handNumber)
    If $y Then
@@ -101,10 +115,11 @@ Func handleHand($filePath, $hFileData, $hFileLogs, $topLeftPos, $bottomRightPos,
    logToFile($hFileLogs, "$isUniqueHand: " & $isUniqueHand)
 	logToFile($hFileLogs, "click back")
    MouseClick("left", $topLeftPos[0] + $handBackOffset[0], $topLeftPos[1] + $handBackOffset[1])
-   Sleep(2000)
+   Sleep(1000)
 
    If $isUniqueHand Then
 	  If Not $y Then
+		 swipeToNext($topLeftPos, $handsScanOffset, $handsHeight, 1)
        logToFile($hFileLogs, "start scrolling to $handsScanCol")
        $isHandFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $handsScanOffset, $handsScanCol, $handsHeight)
        logToFile($hFileLogs, "$isHandFocused: " & $isHandFocused)
@@ -213,6 +228,7 @@ Func dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $table
 		 EndIf
 		 $filePath = $filePath & ".txt"
 		 $hFileData = FileOpen($filePath, $FO_APPEND)
+		 swipeToNext($topLeftPos, $handsScanOffset, $handsHeight, 2)
 		 logToFile($hFileLogs, "start scrolling to $handsScanCol")
 		 $isHandFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $handsScanOffset, $handsScanCol, $handsHeight)
 		 logToFile($hFileLogs, "$isHandFocused: " & $isHandFocused)
@@ -234,11 +250,12 @@ Func dig($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $table
 	  Sleep(1000)
 	  logToFile($hFileLogs, "click back")
 	  MouseClick("left", $topLeftPos[0] + $handBackOffset[0], $topLeftPos[1] + $handBackOffset[1])
-	  Sleep(2000)
+	  Sleep(1000)
 	  logToFile($hFileLogs, "click back")
 	  MouseClick("left", $topLeftPos[0] + $handBackOffset[0], $topLeftPos[1] + $handBackOffset[1])
-	  Sleep(2000)
+	  Sleep(1000)
 
+	  swipeToNext($topLeftPos, $tablesScanOffset, $tablesHeight, 0.6)
 	  $isTableFocused = moveToScanPoint($topLeftPos, $bottomRightPos, $tablesScanOffset, $tablesScanCol, $tablesHeight)
 	  logToFile($hFileLogs, "$isTableFocused: " & $isTableFocused)
 	  For $i = 0 To 3 Step 1
