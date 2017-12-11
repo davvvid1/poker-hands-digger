@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const Promise = require('bluebird');
 const express = require('express');
 const bodyParser = require('body-parser');
 const rp = require('request-promise');
@@ -8,8 +9,7 @@ app.use(bodyParser.text());
 
 app.get('/', (req, res) => res.send('Poker hands digger server is running!'));
 
-function printRound(name, data, players, previousCards, bet = 0)
-{
+function printRound(name, data, players, previousCards, bet = 0) {
     let output = `*** ${name} `;
     if (data.CARD) {
         if (previousCards) {
@@ -19,8 +19,7 @@ function printRound(name, data, players, previousCards, bet = 0)
     }
     output += ` ***\r\n`;
 
-    data.PLAYER.forEach((object) =>
-    {
+    data.PLAYER.forEach((object) => {
         output += `${players[object.NUMBER - 1].name}: `;
         if ('fold 0' === object.ACTION) {
             output += 'folds\r\n';
@@ -41,22 +40,22 @@ function printRound(name, data, players, previousCards, bet = 0)
     return output
 }
 
-app.post('/parse', (req, res) =>
-{
-  rp(req.body)
-    .then((htmlString) => {
-      let slicedBody = htmlString;
-      const startIndex = slicedBody.indexOf('parseJSON(\'{') + 11;
-      slicedBody = slicedBody.slice(startIndex);
-      const endIndex = slicedBody.indexOf('}\');') + 1;
-      slicedBody = slicedBody.slice(0, endIndex);
+app.post('/parse', (req, res) => {
+    Promise.any([
+        Promise.delay(15000),
+        rp(req.body)
+    ]).then((htmlString) => {
+        let slicedBody = htmlString;
+        const startIndex = slicedBody.indexOf('parseJSON(\'{') + 11;
+        slicedBody = slicedBody.slice(startIndex);
+        const endIndex = slicedBody.indexOf('}\');') + 1;
+        slicedBody = slicedBody.slice(0, endIndex);
 
-      console.log(slicedBody);
+        console.log(slicedBody);
 
-      res.send(slicedBody);
-    })
-    .catch(() => {
-      res.sendStatus(200);
+        res.send(slicedBody);
+    }).catch(() => {
+        res.sendStatus(200);
     })
 
 
